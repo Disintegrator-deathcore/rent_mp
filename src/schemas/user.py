@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from src.models.user import UserRole
 
@@ -11,6 +11,12 @@ class UserBase(BaseModel):
     email: EmailStr
     first_name: str = Field(min_length=1, max_length=100, examples=["Иван"])
     last_name: str = Field(min_length=1, max_length=100, examples=["Иванов"])
+    patronymic_name: Optional[str] = Field(
+        default=None,
+        min_length=1,
+        max_length=100,
+        examples=["Иванович"],
+    )
     phone_number: Optional[str] = Field(
         default=None,
         max_length=30,
@@ -42,6 +48,11 @@ class UserUpdate(BaseModel):
         min_length=1,
         max_length=100,
     )
+    patronymic_name: Optional[str] = Field(
+        default=None,
+        min_length=1,
+        max_length=100,
+    )
     phone_number: Optional[str] = Field(
         default=None,
         max_length=30,
@@ -63,3 +74,10 @@ class UserRead(UserBase):
     updated_at: datetime
     
     model_config = ConfigDict(from_attributes=True)
+    
+@field_validator("phone_number", "patronymic_name", mode="before")
+@classmethod
+def empty_string_to_none(cls, v: Optional[str]) -> Optional[str]:
+    if isinstance(v, str) and not v.strip():
+        return None
+    return v

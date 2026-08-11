@@ -41,6 +41,11 @@ class User(BaseModel):
         nullable=False,
     )
     
+    patronymic_name: Mapped[Optional[str]] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+    
     phone_number: Mapped[str] = mapped_column(
         String(30),
         unique=True,
