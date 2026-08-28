@@ -23,7 +23,7 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 # Регистрирует нового пользователя с проверкой уникальности email и телефона
 @router.post(
-    "register",
+    "/register",
     response_model=UserRead,
     status_code=status.HTTP_201_CREATED,
     summary="Регистрация нового пользователя",
