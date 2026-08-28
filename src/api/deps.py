@@ -9,6 +9,7 @@ from src.core.config import settings
 from src.core.database import get_async_session
 from src.core.security import decode_token
 from src.models.user import User
+from src.services.user import UserService
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/auth/login"
@@ -71,3 +72,9 @@ class RoleChecker:
                 detail="Недостаточно прав для выполнения операции",
             )
         return current_user
+    
+# Инжектит сервис работы с пользователем
+async def get_user_service(
+    session: Annotated[AsyncSession, Depends(get_async_session)],
+) -> UserService:
+    return UserService(session)
