@@ -5,15 +5,17 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.deps import get_current_user
 from src.core.database import get_async_session
 from src.core.security import (
     create_access_token,
     create_refresh_token,
+    decode_token,
     get_password_hash,
     verify_password,
 )
 from src.models.user import User
-from src.schemas.user import UserCreate, UserRead
+from src.schemas.user import RefreshTokenRequest, UserCreate, UserRead
 
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -51,7 +53,7 @@ async def register(
                 detail="Пользователь с таким номером уже существует",
             )
             
-    # Хешируем пароль и создаем запись в бд
+    # Хэшируем пароль и создаем запись в бд
     hashed_pwd = get_password_hash(user_in.password)
     new_user = User(
         email = user_in.email,
@@ -107,5 +109,76 @@ async def login(
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
+        "token_type": "bearer",
+    }
+    
+# Возвращает информацию о текущем авторизованном пользователе на основе JWT-токена
+@router.get(
+    "/me",
+    response_model=UserRead,
+    summary="Получить профиль текущего пользователя",
+)
+async def get_me(
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> User:
+    return current_user
+
+# Принимает валидный Refresh-токен и выдает новую пару токенов
+@router.post(
+    "/refresh",
+    summary="Обновление JWT Access и Refresh токенов",
+)
+async def refresh_tokens(
+    body: RefreshTokenRequest,
+    session: Annotated[AsyncSession, Depends(get_async_session)],
+) -> dict[str, str]:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Недействительный или просроченный refresh-токен.",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    # Декодируем и проверяем токен
+    payload = decode_token(body.refresh_token)
+    if not payload:
+        raise credentials_exception
+    
+    # Проверяем, что передали именно Refresh, а не Access токен
+    if payload.get("type") != "refresh":
+        raise credentials_exception
+    
+    # Достаем id пользователя
+    user_id_str: str | None = payload.get("sub")
+    if not user_id_str:
+        raise credentials_exception
+    
+    try:
+        user_id = int(user_id_str)
+    except ValueError:
+        raise credentials_exception
+    
+    # Проверяем существование и активность пользователя в бд
+    query = select(User).where(User.id == user_id)
+    user = await session.scalar(query)
+    
+    if user is None:
+        raise credentials_exception
+    
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Учетная запись деактивирована",
+        )
+        
+    # Генерируем новую пару токенов
+    new_access_token = create_access_token(
+        subject=user.id,
+        extra_claims={"role": user.role.value},
+    )
+    new_refresh_token = create_refresh_token(subject=user.id)
+    
+    return {
+        "access_token": new_access_token,
+        "refresh_token": new_refresh_token,
         "token_type": "bearer",
     }

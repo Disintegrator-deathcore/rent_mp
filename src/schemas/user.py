@@ -81,3 +81,11 @@ def empty_string_to_none(cls, v: Optional[str]) -> Optional[str]:
     if isinstance(v, str) and not v.strip():
         return None
     return v
+
+# Схема для запроса обновления токенов
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str = Field(
+        ...,
+        description="Refresh-токен, полученный при логине",
+        examples=["kjNKJANKejkwjnkeN8798719kaksdnk..."],
+    )

@@ -1,4 +1,4 @@
-from typing import Annotated, Any
+from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -30,7 +30,7 @@ async def get_current_user(
     if not payload:
         raise credenitials_exception
 
-    # Проверяем, что это именно Access Token, а не Redresh
+    # Проверяем, что это именно Access Token, а не Refresh
     token_type = payload.get("type")
     if token_type != "access":
         raise credenitials_exception
