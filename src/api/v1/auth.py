@@ -15,7 +15,7 @@ from src.core.security import (
     verify_password,
 )
 from src.models.user import User
-from src.schemas.user import RefreshTokenRequest, UserCreate, UserRead
+from src.schemas.user import RefreshTokenRequest, UserCreate, UserRead, UserUpdate
 
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -182,3 +182,66 @@ async def refresh_tokens(
         "refresh_token": new_refresh_token,
         "token_type": "bearer",
     }
+    
+# Частично обновляет профиль авторизованного пользователя
+# обновляются только те поля, которые были переданы в теле запроса
+@router.patch(
+    "/me",
+    response_model=UserRead,
+    summary="Обновить профиль текущего пользователя",
+)
+async def update_me(
+    user_in: UserUpdate,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_async_session)],
+) -> User:
+    # Исключаем непереданные поля
+    update_data = user_in.model_dump(exclude_unset=True)
+    
+    if not update_data:
+        return current_user
+    
+    # Проверка уникальности нового Email
+    if (
+        "email" in update_data
+        and update_data["email"] != current_user.email
+    ):
+        email_query = select(User).where(User.email == update_data["email"])
+        existing_email = await session.scalar(email_query)
+        
+        if existing_email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Пользователь с таким email уже существует",
+            )
+            
+    # Проверка уникальности нового телефона
+    if (
+        "phone_number" in update_data
+        and update_data["phone_number"] is not None
+        and update_data["phone_number"] != current_user.phone_number
+    ):
+        phone_query = select(User).where(User.phone_number == update_data["phone_number"])
+        existing_phone = await session.scalar(phone_query)
+        
+        if existing_phone:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Пользователь с таким номером телефона уже существует",
+            )
+            
+    # Хеширование нового пароля
+    if "password" in update_data:
+        raw_password = update_data.pop("password")
+        if raw_password:
+            current_user.hashed_password = get_password_hash(raw_password)
+            
+    # Обновление остальных полей модели
+    for field, value in update_data.items():
+        setattr(current_user, field, value)
+        
+    session.add(current_user)
+    await session.commit()
+    await session.refresh(current_user)
+    
+    return current_user
