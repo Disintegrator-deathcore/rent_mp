@@ -1,10 +1,13 @@
 from enum import Enum
-from typing import Optional
+from typing import Optional, List, TYPE_CHECKING
 
 from sqlalchemy import Enum as SQLEnum, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.models.base import BaseModel
+
+if TYPE_CHECKING:
+    from src.models.listing import Listing
 
 
 # Роли пользователя
@@ -71,6 +74,12 @@ class User(BaseModel):
     is_verified: Mapped[bool] = mapped_column(
         default=False,
         nullable=False,
+    )
+    
+    listings: Mapped[List["Listing"]] = relationship(
+        "Listing",
+        back_populates = "owner",
+        cascade = "all, delete-orphan"
     )
     
     def __repr__(self) -> str:
