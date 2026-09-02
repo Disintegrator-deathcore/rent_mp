@@ -2,7 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.v1.auth import router as auth_router
+from src.api.v1.listings import router as listing_router
 from src.core.config import settings
+
 
 app = FastAPI(
     title = settings.PROJECT_NAME,
@@ -22,6 +24,7 @@ if settings.BACKEND_CORS_ORIGINS:
     
 # Подключение маршрутов v1
 app.include_router(auth_router, prefix=settings.API_V1_STR)
+app.include_router(listing_router, prefix=settings.API_V1_STR)
 
 @app.get("/health", tags=["Health"])
 async def health_check():
