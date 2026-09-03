@@ -9,15 +9,6 @@ VALID_LISTING_DATA = {
     "price_per_day": "2500.00",
     "address": "г. Москва, ул. Тверская, д. 10",
 }
-# Данные для тестового пользователя
-USER_DATA = {
-    "email": "testuser@example.com",
-    "first_name": "Тест",
-    "last_name": "Тестов",
-    "patronymic_name": "Тестович",
-    "password": "StrongPassword123!",
-    "role": "client"
-}
 
 @pytest.mark.asyncio
 async def test_create_listing_success(

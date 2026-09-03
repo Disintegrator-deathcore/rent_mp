@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.config import settings
 from src.core.database import get_async_session
 from src.core.security import decode_token
-from src.models.user import User
+from src.models.user import User, UserRole
 from src.services.user import UserService
 
 oauth2_scheme = OAuth2PasswordBearer(
@@ -65,12 +65,13 @@ async def get_current_user(
 
 
 class RoleChecker:
-    def __init__(self, allowed_roles: list[str]) -> None:
-        self.allowed_roles = allowed_roles
+    def __init__(self, allowed_roles: list[str | UserRole]) -> None:
+        self.allowed_roles = [str(role) for role in allowed_roles]
         
     def __call__(self, current_user: Annotated[User, Depends(get_current_user)]) -> User:
         # Безопасное получение строкового значения роли (для StrEnum и обычной строки)
-        user_role = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
+        # =======user_role = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
+        user_role = str(current_user.role)
         
         if user_role not in self.allowed_roles:
             raise HTTPException(
@@ -79,6 +80,7 @@ class RoleChecker:
             )
         return current_user
 
+require_landlord_or_admin = RoleChecker([UserRole.LANDLORD, UserRole.ADMIN])
 
 async def get_user_service(
     session: Annotated[AsyncSession, Depends(get_async_session)],

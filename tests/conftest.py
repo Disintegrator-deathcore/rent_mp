@@ -20,7 +20,7 @@ USER_DATA = {
     "last_name": "Тестов",
     "patronymic_name": "Тестович",
     "password": "StrongPassword123!",
-    "role": "client"
+    "role": "landlord"
 }
 
 VALID_LISTING_DATA = {

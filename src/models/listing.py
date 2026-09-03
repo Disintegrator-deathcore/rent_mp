@@ -3,7 +3,7 @@ from enum import Enum
 from typing import TYPE_CHECKING
 import uuid
 
-from sqlalchemy import ForeignKey, Numeric, String, Text, Uuid
+from sqlalchemy import Enum as SQLEnum, ForeignKey, Numeric, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.models.base import BaseModel
@@ -42,7 +42,12 @@ class Listing(BaseModel):
     )
     
     status: Mapped[ListingStatus] = mapped_column(
-        String(20),
+        SQLEnum(
+            ListingStatus,
+            name = "listing_status_enum",
+            native_enum = True,
+        ),
+        # String(20),
         default = ListingStatus.ACTIVE,
         nullable = False,
         index = True,

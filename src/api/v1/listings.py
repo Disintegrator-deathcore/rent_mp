@@ -4,7 +4,8 @@ import uuid
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.v1.auth import get_current_user
+# from src.api.v1.auth import get_current_user
+from src.api.deps import get_current_user, require_landlord_or_admin
 from src.core.database import get_async_session
 from src.models.user import User
 from src.schemas.listing import(
@@ -27,7 +28,7 @@ def get_listing_service(
 @router.post("/", response_model = ListingResponse, status_code = status.HTTP_201_CREATED)
 async def create_listing(
     dto: ListingCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_landlord_or_admin),
     service: ListingService = Depends(get_listing_service),
 ):
     return await service.create_listing(dto = dto, owner = current_user)
