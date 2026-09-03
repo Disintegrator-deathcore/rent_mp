@@ -10,7 +10,7 @@ from src.core.security import (
     create_refresh_token,
     decode_token,
 )
-from src.models.user import User
+from src.models.user import User, UserRole
 from src.schemas.user import (
     RefreshTokenRequest,
     UserCreate,
@@ -143,4 +143,31 @@ async def refresh_tokens(
         "refresh_token": new_refresh_token,
         "token_type": "bearer",
     }
+
+# Удаляет пользователя
+@router.delete(
+    "/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Удаления пользователя",
+)
+async def delete_user(
+    user_id: UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    user_service: Annotated[UserService, Depends(get_user_service)],
+):
+    # Проверяем права
+    if current_user.id != user_id and current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Недостаточно прав для уделения этого пользователя",
+        )
     
+    deleted = await user_service.delete_user(user_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Пользователь не найден",
+        )
+        
+    return None
+   

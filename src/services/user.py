@@ -129,4 +129,17 @@ class UserService:
         await self.session.refresh(user)
         
         return user
+
+    # Удаление пользователя
+    async def delete_user(self, user_id: UUID) -> bool:
+        # Находим пользователя
+        user = await self.get_by_id(user_id)
+        if not user:
+            return False
+        
+        # Удаляем пользователя
+        await self.session.delete(user)
+        await self.session.commit()
+        
+        return True
         
