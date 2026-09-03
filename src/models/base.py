@@ -1,17 +1,22 @@
+# from sqlalchemy.dialects.postgresql import UUID
+
 from datetime import datetime
 from typing import Annotated
+import uuid
 
-from sqlalchemy import DateTime, func
+from sqlalchemy import DateTime, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.core.database import Base
 
 
+# Первичный ключ UUID для PSQL
 pk_index = Annotated[
-    int,
+    uuid.UUID,
     mapped_column(
+        Uuid(as_uuid=True),
         primary_key=True,
-        autoincrement=True,
+        default = uuid.uuid4,
         index = True,
     ),
 ]

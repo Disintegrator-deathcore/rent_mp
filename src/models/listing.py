@@ -1,8 +1,9 @@
+# from sqlalchemy.dialects.postgresql import UUID
 from enum import Enum
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 import uuid
 
-from sqlalchemy import ForeignKey, Numeric, String, Text
+from sqlalchemy import ForeignKey, Numeric, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.models.base import BaseModel
@@ -48,6 +49,7 @@ class Listing(BaseModel):
     )
     
     owner_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid = True),
         ForeignKey("users.id", ondelete = "CASCADE"),
         nullable = False,
         index = True,

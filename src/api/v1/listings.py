@@ -1,4 +1,4 @@
-from typing import List, Sequence
+from typing import List
 import uuid
 
 from fastapi import APIRouter, Depends, Query, status
@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.v1.auth import get_current_user
 from src.core.database import get_async_session
-from src.models.listing import ListingStatus
 from src.models.user import User
 from src.schemas.listing import(
     ListingCreate,
@@ -45,14 +44,12 @@ async def get_listings(
 @router.get("/{listing_id}", response_model=ListingResponse)
 async def get_listing(
     listing_id: uuid.UUID,
-    dto: ListingUpdate,
-    current_user: User = Depends(get_current_user),
     service: ListingService = Depends(get_listing_service),
 ):
     return await service.get_listing_by_id(listing_id = listing_id)
 
 # Обновление объявления
-@router.patch("/listing_id", response_model=ListingResponse)
+@router.patch("/{listing_id}", response_model=ListingResponse)
 async def update_listing(
     listing_id: uuid.UUID,
     dto: ListingUpdate,

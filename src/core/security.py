@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional, Union
+from uuid import UUID
 
 import bcrypt
-from jose import JWTError, jwt
+from fastapi import HTTPException, status
+from jose import JWTError, ExpiredSignatureError, jwt
 
 from src.core.config import settings
 
@@ -21,7 +23,7 @@ def get_password_hash(password: str) -> str:
     return bcrypt.hashpw(pwd_bytes, salt).decode("utf-8")
 
 def create_access_token(
-    subject: Union[str, int],
+    subject: Union[str, int, UUID],
     expires_delta: Optional[timedelta] = None,
     extra_claims: Optional[dict[str, Any]] = None,
 ) -> str:
@@ -51,7 +53,7 @@ def create_access_token(
 
 # Создает jwt токен для обновления сессии
 def create_refresh_token(
-    subject: Union[str, int],
+    subject: Union[str, int, UUID],
     expires_delta: Optional[timedelta] = None,
 ) -> str:
     now = datetime.now(timezone.utc)
@@ -77,13 +79,34 @@ def create_refresh_token(
     return encoded_jwt
 
 # Декодирует и проверяет валидность jwt-токена
-def decode_token(token: str) -> Optional[dict[str, Any]]:
+def decode_token(
+    token: str,
+    expected_type: Optional[str] = None
+) -> Optional[dict[str, Any]]:
     try:
         payload = jwt.decode(
             token,
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM],
         )
+        
+        # Проверяем тип токена, если он указан
+        if expected_type and payload.get("type") != expected_type:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"Неверный тип токена. Ожидалось {expected_type}",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
         return payload
+    except ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Срок действия токена истек",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     except JWTError:
-        return None
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Не удалось проверить учетные данные",
+            headers={"WWW-Authenticate": "Bearer"},
+        )

@@ -1,4 +1,5 @@
 from typing import Optional, Union
+from uuid import UUID
 
 from fastapi import HTTPException, status
 from sqlalchemy import select
@@ -15,7 +16,7 @@ class UserService:
         self.session = session
         
     # Получение пользователя по id
-    async def get_by_id(self, user_id: int) -> Optional[User]:
+    async def get_by_id(self, user_id: UUID) -> Optional[User]:
         query = select(User).where(User.id == user_id)
         return await self.session.scalar(query)
     

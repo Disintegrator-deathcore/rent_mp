@@ -27,7 +27,7 @@ class ListingService:
 
         self.session.add(listing)
         await self.session.commit()
-        await self.session.refresh(list)
+        await self.session.refresh(listing)
         
         return listing
     
@@ -54,9 +54,9 @@ class ListingService:
         if filters.owner_id:
             stmt = stmt.where(Listing.owner_id == filters.owner_id)
         if filters.min_price is not None:
-            stmt = stmt.where(Listing.price_per_day == filters.min_price)
+            stmt = stmt.where(Listing.price_per_day >= filters.min_price)
         if filters.max_price is not None:
-            stmt = stmt.where(Listing.price_per_day == filters.max_price)
+            stmt = stmt.where(Listing.price_per_day <= filters.max_price)
             
         stmt = stmt.offset(filters.offset).limit(filters.limit)
         result = await self.session.execute(stmt)

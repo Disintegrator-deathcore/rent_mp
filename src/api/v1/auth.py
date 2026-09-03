@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -114,7 +115,7 @@ async def refresh_tokens(
         raise credentials_exception
     
     try:
-        user_id = int(user_id_str)
+        user_id = UUID(user_id_str)
     except ValueError:
         raise credentials_exception
     

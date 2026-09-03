@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
@@ -66,7 +67,7 @@ class UserUpdate(BaseModel):
     
 # Схема для возврата данных из API
 class UserRead(UserBase):
-    id: int
+    id: UUID
     role: UserRole
     is_active: bool
     is_verified: bool
