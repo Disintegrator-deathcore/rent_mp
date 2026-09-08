@@ -1,8 +1,8 @@
-"""create_listing_table
+"""empty message
 
-Revision ID: a16b97b64a89
-Revises: db44f404cf24
-Create Date: 2026-09-02 10:02:40.471922
+Revision ID: 249776e24db7
+Revises: 
+Create Date: 2026-09-08 14:42:59.899438
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'a16b97b64a89'
-down_revision: Union[str, Sequence[str], None] = 'db44f404cf24'
+revision: str = '249776e24db7'
+down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -28,10 +28,17 @@ def upgrade() -> None:
     sa.Column('last_name', sa.String(length=255), nullable=False),
     sa.Column('patronymic_name', sa.String(length=255), nullable=True),
     sa.Column('phone_number', sa.String(length=30), nullable=True),
+    sa.Column('avatar_url', sa.String(length=512), nullable=True),
+    sa.Column('birth_day', sa.Date(), nullable=True),
+    sa.Column('gender', sa.Enum('MALE', 'FEMALE', name='gender_enum'), nullable=True),
+    sa.Column('city', sa.String(length=100), nullable=True),
+    sa.Column('balance', sa.Numeric(precision=12, scale=2), nullable=True),
+    sa.Column('landlord_rating', sa.Float(), nullable=True),
+    sa.Column('tenant_rating', sa.Float(), nullable=True),
     sa.Column('role', sa.Enum('CLIENT', 'LANDLORD', 'ADMIN', name='user_role_enum'), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('is_verified', sa.Boolean(), nullable=False),
-    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('id'),
@@ -44,9 +51,9 @@ def upgrade() -> None:
     sa.Column('description', sa.Text(), nullable=False),
     sa.Column('price_per_day', sa.Numeric(precision=10, scale=2), nullable=False),
     sa.Column('address', sa.String(length=512), nullable=False),
-    sa.Column('status', sa.String(length=20), nullable=False),
-    sa.Column('owner_id', sa.Integer(), nullable=False),
-    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('status', sa.Enum('DRAFT', 'ACTIVE', 'ARCHIVED', name='listing_status_enum'), nullable=False),
+    sa.Column('owner_id', sa.Uuid(), nullable=False),
+    sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['owner_id'], ['users.id'], ondelete='CASCADE'),

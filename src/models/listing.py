@@ -47,7 +47,6 @@ class Listing(BaseModel):
             name = "listing_status_enum",
             native_enum = True,
         ),
-        # String(20),
         default = ListingStatus.ACTIVE,
         nullable = False,
         index = True,

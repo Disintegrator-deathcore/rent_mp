@@ -1,7 +1,9 @@
 from enum import Enum
+from datetime import date
+from decimal import Decimal
 from typing import Optional, List, TYPE_CHECKING
 
-from sqlalchemy import Enum as SQLEnum, String
+from sqlalchemy import Date, Enum as SQLEnum, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.models.base import BaseModel
@@ -15,6 +17,10 @@ class UserRole(str, Enum):
     CLIENT = "client"
     LANDLORD = "landlord"
     ADMIN = "admin"
+    
+class Gender(str, Enum):
+    MALE = "male"
+    FEMALE = "female"
 
 # Модель пользователя    
 class User(BaseModel):
@@ -49,9 +55,49 @@ class User(BaseModel):
         nullable=True,
     )
     
-    phone_number: Mapped[str] = mapped_column(
+    phone_number: Mapped[Optional[str]] = mapped_column(
         String(30),
         unique=True,
+        nullable=True,
+    )
+    
+    avatar_url: Mapped[Optional[str]] = mapped_column(
+        String(512),
+        nullable=True,
+    )
+    
+    birth_day: Mapped[Optional[date]] = mapped_column(
+        Date,
+        nullable=True,
+    )
+    
+    gender: Mapped[Optional[Gender]] = mapped_column(
+        SQLEnum(
+            Gender,
+            name="gender_enum",
+            native_enum=True,
+        ),
+        nullable=True,
+    )
+    
+    city: Mapped[Optional[str]] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+    
+    balance: Mapped[Optional[Decimal]] = mapped_column(
+        Numeric(12, 2),
+        default=0.00,
+    )
+
+    # Денормализованные рейтинги
+    landlord_rating: Mapped[Optional[float]] = mapped_column(
+        default=0.0,
+        nullable=True,
+    )
+    
+    tenant_rating: Mapped[Optional[float]] = mapped_column(
+        default=0.0,
         nullable=True,
     )
     

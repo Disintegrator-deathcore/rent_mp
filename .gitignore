@@ -29,6 +29,8 @@ env/
 
 # --- IDEs & Editors ---
 .vscode/
+*.drawio*
 
-# Файл тестирования
+# Вспомогательные файлы
 test.py
+generate.bat
