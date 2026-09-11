@@ -1,5 +1,7 @@
 from cryptography.fernet import Fernet
 from datetime import datetime, timedelta, timezone
+import hmac
+import hashlib
 from typing import Any, Optional, Union
 from uuid import UUID
 
@@ -115,6 +117,17 @@ def decode_token(
 # Шифрование и дешифрование персональных данных
 def get_fernet_cipher() -> Fernet:
     return Fernet(settings.SECRET_KEY.encode()[:32].ljust(32, b"="))
+
+# Генерирует детерминированный HMAC-хеш для поиска по зашифрованным полям
+def hash_sesitive_data(data: str) -> str:
+    if not data:
+        return data
+    
+    return hmac.new(
+        settings.SECRET_KEY.encode("utf-8"),
+        data.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
 
 def encrypt_data(data: str) -> str:
     if not data:

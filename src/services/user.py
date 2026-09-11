@@ -129,16 +129,38 @@ class UserService:
         await self.session.refresh(user)
         
         return user
-
-    # Удаление пользователя
-    async def delete_user(self, user_id: UUID) -> bool:
-        # Находим пользователя
+    
+    # Анонимизация и мягкое удаление пользователя
+    async def anonymize_and_delete(
+        self,
+        user_id: UUID,
+        current_password: Optional[str] = None,
+        is_admin: bool = False,
+    ) -> bool:
         user = await self.get_by_id(user_id)
+        
         if not user:
             return False
         
-        # Удаляем пользователя
-        await self.session.delete(user)
+        # Если удаляет не админ, обязательно проверка пароля
+        if not is_admin:
+            if not current_password or not verify_password(current_password, user.hashed_password):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Неверный пароль для подтверждения удаления аккаунта",
+                )
+                
+        # Обезличивание персональных данных
+        user.first_name = "Deleted"
+        user.last_name = "User"
+        user.patronymic_name = None
+        user.phone_number = None
+        user.email = f"deleted{user.id}@anonymized.local"
+        user.avatar_url = None
+        user.city = None
+        user.is_active = False
+        
+        self.session.add(user)
         await self.session.commit()
         
         return True

@@ -16,6 +16,7 @@ from src.schemas.user import (
     UserCreate,
     UserRead,
     UserUpdate,
+    UserDeleteRequest,
 )
 from src.services.user import UserService
 
@@ -152,18 +153,26 @@ async def refresh_tokens(
 )
 async def delete_user(
     user_id: UUID,
+    delete_data: UserDeleteRequest,
     current_user: Annotated[User, Depends(get_current_user)],
     user_service: Annotated[UserService, Depends(get_user_service)],
 ):
+    is_admin = current_user.role == UserRole.ADMIN
+    
     # Проверяем права
-    if current_user.id != user_id and current_user.role != UserRole.ADMIN:
+    if current_user.id != user_id and not is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Недостаточно прав для уделения этого пользователя",
         )
     
-    deleted = await user_service.delete_user(user_id)
-    if not deleted:
+    success = await user_service.anonymize_and_delete(
+        user_id=user_id,
+        current_password=delete_data.password,
+        is_admin=is_admin,
+    )
+    
+    if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Пользователь не найден",
