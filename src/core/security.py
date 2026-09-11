@@ -1,3 +1,4 @@
+from cryptography.fernet import Fernet
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional, Union
 from uuid import UUID
@@ -110,3 +111,20 @@ def decode_token(
             detail="Не удалось проверить учетные данные",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+# Шифрование и дешифрование персональных данных
+def get_fernet_cipher() -> Fernet:
+    return Fernet(settings.SECRET_KEY.encode()[:32].ljust(32, b"="))
+
+def encrypt_data(data: str) -> str:
+    if not data:
+        return data
+    cipher = get_fernet_cipher()
+    return cipher.encrypt(data.encode("utf-8")).decode("utf-8")
+
+def decrypt_data(encrypted_data: str) -> str:
+    if not encrypted_data:
+        return encrypted_data
+    cipher = get_fernet_cipher()
+    return cipher.decrypt(encrypted_data.encode("utf-8")).decode("utf-8")
+        

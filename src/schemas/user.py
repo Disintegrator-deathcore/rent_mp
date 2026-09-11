@@ -158,8 +158,14 @@ class UserRead(UserBase):
     balance: Decimal = Field(
         default=Decimal("0.00"),
     )
-    tenant_rating: Optional[float] = None
-    landlord_rating: Optional[float] = None
+    tenant_rating: Decimal = Field(
+        default=Decimal("0.00"),
+        description="Рейтинг пользователя как арендатора"
+    )
+    landlord_rating: Decimal = Field(
+        default=Decimal("0.00"),
+        description="Рейтинг пользователя как арендодателя"
+    )
     
     created_at: datetime
     updated_at: datetime

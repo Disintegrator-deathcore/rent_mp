@@ -56,7 +56,7 @@ class User(BaseModel):
     )
     
     phone_number: Mapped[Optional[str]] = mapped_column(
-        String(30),
+        String(512),
         unique=True,
         nullable=True,
     )
@@ -91,14 +91,16 @@ class User(BaseModel):
     )
 
     # Денормализованные рейтинги
-    landlord_rating: Mapped[Optional[float]] = mapped_column(
-        default=0.0,
-        nullable=True,
+    landlord_rating: Mapped[Optional[Decimal]] = mapped_column(
+        Numeric(3, 2),
+        default=Decimal("0.00"),
+        nullable=False,
     )
     
-    tenant_rating: Mapped[Optional[float]] = mapped_column(
-        default=0.0,
-        nullable=True,
+    tenant_rating: Mapped[Optional[Decimal]] = mapped_column(
+        Numeric(3, 2),
+        default=Decimal("0.00"),
+        nullable=False,
     )
     
     # Статусы и доступ
