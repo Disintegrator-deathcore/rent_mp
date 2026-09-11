@@ -173,3 +173,50 @@ class RefreshTokenRequest(BaseModel):
         description="Refresh-токен, полученный при логине",
         examples=["kjNKJANKejkwjnkeN8798719kaksdnk..."],
     )
+
+# Верификация
+class UserVerificationRequest(BaseModel):
+    document_type: str = Field(
+        ...,
+        description="Тип документа (паспорт, права и т.д.)",
+    )
+    document_number: str = Field(
+        ...,
+        description = "Номер документа",
+    )
+    document_image_url: str = Field(
+        ...,
+        description = "Ссылка на фото документа",
+    )
+
+# Двухфакторка
+class TwoFactorEnableRequest(BaseModel):
+    code: str = Field(
+        ...,
+        min_length=6,
+        max_length=6,
+        description="6-значный TOTP код или SMS код",
+    )
+
+class TwoFactoryVerifyRequest(BaseModel):
+    user_id: UUID
+    code: str = Field(
+        ...,
+        min_length=6,
+        max_length=6,
+    )
+
+# Альтернативный вход через соцсети (OAuth2)
+class SocialAuthRequest(BaseModel):
+    provider: str = Field(
+        ...,
+        examples=["vk", "ok", "max", "telegram"],
+        description="Провайдер авторизации",
+    )
+
+# Удаление аккаунта (подтверждение удаления)
+class UserDeleteRequest(BaseModel):
+    password: str = Field(
+        ...,
+        description="Текущий пароль для подтверждения удаления",
+    )
